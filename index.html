@@ -24,6 +24,15 @@
                 700: '#1d4ed8',
                 900: '#1e3a8a',
               }
+            },
+            animation: {
+              'fade-in': 'fadeIn 0.5s ease-out forwards',
+            },
+            keyframes: {
+              fadeIn: {
+                '0%': { opacity: '0', transform: 'translateY(10px)' },
+                '100%': { opacity: '1', transform: 'translateY(0)' },
+              }
             }
           }
         }
@@ -32,9 +41,38 @@
     <style>
       body { font-family: 'Inter', sans-serif; }
       .scroll-smooth { scroll-behavior: smooth; }
+      
+      /* Simple Reveal Animation */
+      .reveal {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: all 0.8s ease-out;
+      }
+      .reveal.active {
+        opacity: 1;
+        transform: translateY(0);
+      }
     </style>
+  <script>
+    // Intersection Observer for scroll animations
+    document.addEventListener('DOMContentLoaded', () => {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('active');
+          }
+        });
+      });
+      
+      // Auto-add reveal class to main sections
+      document.querySelectorAll('section, .reveal-item').forEach(el => {
+        el.classList.add('reveal');
+        observer.observe(el);
+      });
+    });
+  </script>
 
-  <script type="importmap">
+<script type="importmap">
 {
   "imports": {
     "react": "https://aistudiocdn.com/react@^19.2.0",
@@ -47,7 +85,7 @@
   }
 }
 </script>
-  <script type="module" crossorigin src="./assets/index-atkB53C_.js"></script>
+  <script type="module" crossorigin src="./assets/index-Sw6Upjng.js"></script>
 </head>
   <body class="bg-slate-50 text-slate-900 scroll-smooth">
     <div id="root"></div>
