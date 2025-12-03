@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import { DeviceType, DiagnosisResponse, ShoppingResponse, AIMode } from "../types";
+import { DeviceType, DiagnosisResponse, ShoppingResponse, ExchangeResponse, AIMode } from "../types";
 import { CATALOG_PRODUCTS } from "../constants";
 
 // Access API Key securely
@@ -130,6 +130,51 @@ export const recommendLaptop = async (userNeeds: string): Promise<ShoppingRespon
 
     const cleanText = response.text?.replace(/```json/g, '').replace(/```/g, '').trim() || "{}";
     return JSON.parse(cleanText) as ShoppingResponse;
+  } catch (error: any) {
+    throw handleGeminiError(error);
+  }
+};
+
+export const estimateExchangeValue = async (laptopDetails: string): Promise<ExchangeResponse> => {
+  const ai = getAIClient();
+  const model = "gemini-2.5-flash";
+
+  const systemPrompt = `
+    You are a used laptop valuation expert in the Indian Market (Rewari, Haryana region).
+    User wants to sell/exchange their old laptop.
+    Laptop Details: "${laptopDetails}"
+
+    Task: Provide a REALISTIC estimated cash/exchange value range in INR (Indian Rupees).
+    Be conservative but fair. Old electronics depreciate fast. 
+    
+    Return JSON:
+    - estimatedValueRange: e.g., "₹8,000 - ₹10,000" (Make it a range).
+    - marketAnalysis: Brief comment on this model's current demand.
+    - deductionFactors: List 2-3 things that might lower price (e.g. "Battery health", "Scratches").
+    - nextSteps: "Bring to Khusboo Electric for final physical inspection."
+  `;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: model,
+      contents: { parts: [{ text: systemPrompt }] },
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            estimatedValueRange: { type: Type.STRING },
+            marketAnalysis: { type: Type.STRING },
+            deductionFactors: { type: Type.ARRAY, items: { type: Type.STRING } },
+            nextSteps: { type: Type.STRING }
+          },
+          required: ["estimatedValueRange", "marketAnalysis", "deductionFactors", "nextSteps"]
+        }
+      }
+    });
+
+    const cleanText = response.text?.replace(/```json/g, '').replace(/```/g, '').trim() || "{}";
+    return JSON.parse(cleanText) as ExchangeResponse;
   } catch (error: any) {
     throw handleGeminiError(error);
   }
