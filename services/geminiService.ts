@@ -2,7 +2,11 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { DeviceType, DiagnosisResponse } from "../types";
 
 // Access API Key securely
-const apiKey = process.env.API_KEY;
+let rawApiKey = process.env.API_KEY || "";
+
+// CLEAN THE KEY: Remove spaces, newlines, and quotes that often get copied accidentally
+// This fixes the "INVALID_ARGUMENT" error
+const apiKey = rawApiKey.replace(/["'\s\n\r]/g, '');
 
 export const diagnoseDeviceProblem = async (
   deviceType: DeviceType,
@@ -10,12 +14,12 @@ export const diagnoseDeviceProblem = async (
 ): Promise<DiagnosisResponse> => {
   
   // Debug log (will show in browser console)
-  console.log("AI Service: Initializing...", apiKey ? "Key Present" : "Key Missing");
+  console.log("AI Service: Initializing...", apiKey && apiKey.length > 20 ? "Key Present (Valid Length)" : "Key Missing/Short");
 
-  // 1. Check if API Key is present
-  if (!apiKey || apiKey.length === 0 || apiKey.includes("API_KEY")) {
+  // 1. Check if API Key is present and looks valid
+  if (!apiKey || apiKey.length < 10 || apiKey.includes("API_KEY")) {
     console.error("CRITICAL ERROR: API Key is missing or invalid.");
-    throw new Error("System Configuration Error: API Key missing. Please check Vercel/GitHub Settings.");
+    throw new Error("System Configuration Error: API Key missing or invalid. Please check Vercel/GitHub Settings.");
   }
 
   // 2. Initialize Client
@@ -72,8 +76,12 @@ export const diagnoseDeviceProblem = async (
     
     // Pass the actual error message if it's about the key or network
     if (error.message) {
-        if (error.message.includes("API Key")) return Promise.reject(new Error("Invalid API Key configured."));
-        if (error.message.includes("fetch") || error.message.includes("network")) return Promise.reject(new Error("Network Error: Please check internet connection."));
+        if (error.message.includes("API key not valid") || error.message.includes("API_KEY_INVALID")) {
+            return Promise.reject(new Error("Invalid API Key. Please check GitHub/Vercel settings for extra spaces or quotes."));
+        }
+        if (error.message.includes("fetch") || error.message.includes("network")) {
+            return Promise.reject(new Error("Network Error: Please check internet connection."));
+        }
         // Pass through any other specific messages
         return Promise.reject(error);
     }
