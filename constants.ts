@@ -1,13 +1,14 @@
 import { Monitor, Smartphone, Wrench, ShieldCheck, HardDrive } from "lucide-react";
 
 export const BUSINESS_INFO = {
-  name: "Khusboo Electric",
+  name: "Khusboo Electronics",
   owner: "K.L. Saini",
   phone: "7206770673",
   whatsapp: "7206770673", // Only digits for API links
   whatsappDisplay: "+91 7206770673",
   email: "kanheya@live.com",
-  address: "Sunder Lal Market, Near Everest Cinema",
+  address: "Kl Saini Khusboo Electronics, Sunder Lal Market, Near Everest Cinema, Rewari 123401 (HR)",
+  mapLink: "https://www.google.com/maps/place/Kl+Saini%7BLaptop+Sell+%26+Service%7D/@28.1964042,76.5939546,15z/data=!4m22!1m15!4m14!1m6!1m2!1s0x390d5075e45aa17b:0x77972a700f21cfb0!2zS2wgU2Fpbml7TGFwdG9wIFNlbGwgJiBTZXJ2aWNlfSDgpJXgpYfgpI_gpLIg4KS44KWI4KSo4KWAe-CksuCliOCkquCkn-ClieCkqiDgpLjgpYfgpLIgJiDgpLjgpLDgpY3gpLXgpL_gpLh9!2m2!1d76.6119764!2d28.1964069!1m6!1m2!1s0x390d5075e45aa17b:0x77972a700f21cfb0!2ssunder+lal+market,+near+Everest+cinema,+Rewari,+Haryana+123401!2m2!1d76.6119764!2d28.1964069!3m5!1s0x390d5075e45aa17b:0x77972a700f21cfb0!8m2!3d28.1964069!4d76.6119764!16s%2Fg%2F11c7symfdp?entry=ttu&g_ep=EgoyMDI1MTEzMC4wIKXMDSoASAFQAw%3D%3D",
   catalogLink: "https://wa.me/c/917206770673",
   experience: "15 Years",
   tagline: "Expert Laptop Repair & Quality Refurbished Devices"
