@@ -4,16 +4,15 @@ import { ShoppingBag, ArrowRight, ExternalLink, Cpu } from 'lucide-react';
 
 export const CatalogPreview: React.FC = () => {
   // Specific products with updated details and prices
-  // Note: Since I cannot access local file uploads, I am using high-quality, stable public URLs 
-  // that closely resemble the specific models.
+  // Using reliable Unsplash images that look like the specific models
   const products = [
     { 
       name: "Dell Latitude 7480", 
       specs: "Core i5 6th Gen, 8GB RAM, 256GB SSD, Win 11",
       price: "₹14,990", 
       tag: "Best Value", 
-      // Image: Clear shot of a black business laptop (Latitude style)
-      img: "/public/Dell.jpg.jpeg", 
+      // Black business laptop image
+      img: "https://images.unsplash.com/photo-1588872657578-a3d89190266c?q=80&w=800&auto=format&fit=crop", 
       link: "https://wa.me/p/25836281255958120/917206770673"
     },
     { 
@@ -21,8 +20,8 @@ export const CatalogPreview: React.FC = () => {
       specs: "Core i5 7th Gen, 8GB RAM, 256GB SSD, Win 11",
       price: "₹16,990", 
       tag: "Premium Design", 
-      // Image: Clear shot of a silver ultrabook (EliteBook style)
-      img: "/public/hp.jpg.jpeg", 
+      // Silver sleek laptop image
+      img: "https://images.unsplash.com/photo-1544731612-de7f96afe55f?q=80&w=800&auto=format&fit=crop", 
       link: "https://wa.me/p/8783197445040361/917206770673"
     },
     { 
@@ -30,8 +29,8 @@ export const CatalogPreview: React.FC = () => {
       specs: "Core i5, 8GB RAM, 256GB SSD, macOS Monterey",
       price: "₹18,990", 
       tag: "Apple Deal", 
-      // Image: Specific MacBook Air design
-      img: "/public/mac.jpg.jpeg", 
+      // MacBook Air image
+      img: "https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?q=80&w=800&auto=format&fit=crop", 
       link: BUSINESS_INFO.catalogLink
     },
     { 
@@ -39,8 +38,8 @@ export const CatalogPreview: React.FC = () => {
       specs: "Core i5 7th Gen, 8GB RAM, 256GB SSD, Win 11",
       price: "₹14,990", 
       tag: "Business Rugged", 
-      // Image: Classic ThinkPad black design
-      img: "/public/thinkpad.jpg.jpeg", 
+      // ThinkPad style image
+      img: "https://images.unsplash.com/photo-1527434076935-4309d7842603?q=80&w=800&auto=format&fit=crop", 
       link: "https://wa.me/p/8294710417324994/917206770673"
     },
   ];
