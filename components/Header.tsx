@@ -20,10 +20,12 @@ export const Header: React.FC = () => {
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <div className="flex-shrink-0 flex items-center gap-2">
-            <div className="w-8 h-8 bg-brand-600 rounded-lg flex items-center justify-center text-white font-bold text-xl">
-              K
-            </div>
+          <div className="flex-shrink-0 flex items-center gap-3">
+            <img 
+              src="https://i.ibb.co/gLWBgg61/Whats-App-Image-2025-12-03-at-4-35-20-PM.jpg" 
+              alt="Khusboo Electronics Logo" 
+              className="h-10 w-10 rounded-lg object-cover border border-slate-100"
+            />
             <div>
               <h1 className="text-xl font-bold text-slate-900 leading-none">{BUSINESS_INFO.name}</h1>
               <p className="text-xs text-slate-500 font-medium tracking-wider">SALES & SERVICE</p>
