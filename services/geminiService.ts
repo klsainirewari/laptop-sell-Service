@@ -4,20 +4,34 @@ import { DeviceType, DiagnosisResponse } from "../types";
 // Access API Key securely
 let rawApiKey = process.env.API_KEY || "";
 
-// CLEAN THE KEY: Remove spaces, newlines, and quotes that often get copied accidentally
-// This fixes the "INVALID_ARGUMENT" error
-const apiKey = rawApiKey.replace(/["'\s\n\r]/g, '');
+// SMART KEY CLEANING
+// 1. Remove quotes and whitespace
+let apiKey = rawApiKey.replace(/["'\s\n\r]/g, '');
+
+// 2. Handle cases where user pastes "VITE_API_KEY=AIza..." or "key: AIza..."
+if (apiKey.includes('=')) {
+  apiKey = apiKey.split('=').pop() || apiKey;
+} else if (apiKey.includes(':')) {
+  apiKey = apiKey.split(':').pop() || apiKey;
+}
+
+// 3. Final trim just in case split left spaces (though step 1 handled most)
+apiKey = apiKey.trim();
 
 export const diagnoseDeviceProblem = async (
   deviceType: DeviceType,
   problemDescription: string
 ): Promise<DiagnosisResponse> => {
   
-  // Debug log (will show in browser console)
-  console.log("AI Service: Initializing...", apiKey && apiKey.length > 20 ? "Key Present (Valid Length)" : "Key Missing/Short");
+  // Create a masked version for debugging (shows first 4 and last 4 chars)
+  const maskedKey = apiKey.length > 8 
+    ? `${apiKey.substring(0, 4)}...${apiKey.substring(apiKey.length - 4)}`
+    : "Key-Too-Short";
+
+  console.log(`AI Service: Initializing using key: ${maskedKey}`);
 
   // 1. Check if API Key is present and looks valid
-  if (!apiKey || apiKey.length < 10 || apiKey.includes("API_KEY")) {
+  if (!apiKey || apiKey.length < 20 || apiKey.includes("API_KEY")) {
     console.error("CRITICAL ERROR: API Key is missing or invalid.");
     throw new Error("System Configuration Error: API Key missing or invalid. Please check Vercel/GitHub Settings.");
   }
@@ -76,11 +90,12 @@ export const diagnoseDeviceProblem = async (
     
     // Pass the actual error message if it's about the key or network
     if (error.message) {
-        if (error.message.includes("API key not valid") || error.message.includes("API_KEY_INVALID")) {
-            return Promise.reject(new Error("Invalid API Key. Please check GitHub/Vercel settings for extra spaces or quotes."));
+        if (error.message.includes("API key not valid") || error.message.includes("API_KEY_INVALID") || error.message.includes("400")) {
+            // Show the masked key in the error so the user knows what was sent
+            return Promise.reject(new Error(`Invalid API Key (Used: ${maskedKey}). Please check GitHub/Vercel settings.`));
         }
-        if (error.message.includes("fetch") || error.message.includes("network")) {
-            return Promise.reject(new Error("Network Error: Please check internet connection."));
+        if (error.message.includes("fetch") || error.message.includes("network") || error.message.includes("Failed to fetch")) {
+            return Promise.reject(new Error("Network Error: Unable to connect to Google AI. Check internet."));
         }
         // Pass through any other specific messages
         return Promise.reject(error);
