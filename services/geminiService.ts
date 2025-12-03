@@ -1,13 +1,22 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { DeviceType, DiagnosisResponse } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Access API Key securely
+const apiKey = process.env.API_KEY;
 
 export const diagnoseDeviceProblem = async (
   deviceType: DeviceType,
   problemDescription: string
 ): Promise<DiagnosisResponse> => {
   
+  // 1. Check if API Key is present
+  if (!apiKey || apiKey.length === 0 || apiKey.includes("API_KEY")) {
+    console.error("CRITICAL ERROR: API Key is missing or invalid. Please check GitHub Secrets/Vercel Env Vars.");
+    throw new Error("System Configuration Error: API Key missing. Please call the shop directly.");
+  }
+
+  // 2. Initialize Client
+  const ai = new GoogleGenAI({ apiKey: apiKey });
   const model = "gemini-2.5-flash";
   
   const prompt = `
@@ -50,10 +59,14 @@ export const diagnoseDeviceProblem = async (
     const text = response.text;
     if (!text) throw new Error("No response from AI");
     
-    return JSON.parse(text) as DiagnosisResponse;
+    // 3. Clean and Parse JSON (Fix for markdown wrapping issues)
+    const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
+    
+    return JSON.parse(cleanText) as DiagnosisResponse;
 
   } catch (error) {
     console.error("Gemini Diagnosis Error:", error);
-    throw new Error("Our virtual technician is currently offline. Please call us directly.");
+    // Return a user-friendly message, but log the real error
+    throw new Error("Our virtual technician is currently offline (Connection Error). Please call 7206770673 for help.");
   }
 };
