@@ -1,20 +1,29 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Khusboo Electric - Website Project
 
-# Run and deploy your AI Studio app
+## Kaise Update Karein (How to Update)
 
-This contains everything you need to run your app locally.
+Jab bhi aap code mein koi change karein, changes ko live karne ke liye **VS Code Terminal** mein ye 3 commands chalayein:
 
-View your app in AI Studio: https://ai.studio/apps/drive/1pIBRdYH1L7tkkFhOncVmgf7OUAtePzgp
+1.  `git add .`
+2.  `git commit -m "Description of changes"`
+3.  `git push`
 
-## Run Locally
+Iske baad Vercel automatically site update kar dega.
 
-**Prerequisites:**  Node.js
+## Vercel Setup (Zaroori Hai)
 
+AI Technician feature chalane ke liye aapko Vercel par API Key dalni hogi:
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+1.  Go to **Vercel Dashboard** > Select Project.
+2.  Go to **Settings** > **Environment Variables**.
+3.  Add New Variable:
+    *   **Key:** `VITE_API_KEY`
+    *   **Value:** `Your_Google_Gemini_API_Key_Here`
+4.  Click **Add**.
+5.  Go to **Deployments** and click **Redeploy** on the latest build.
+
+## Website Features
+- Laptop Sales Catalog
+- Expert Repair Services Info
+- AI Virtual Technician (Powered by Gemini)
+- Responsive Design (Mobile & Desktop)

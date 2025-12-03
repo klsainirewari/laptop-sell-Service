@@ -1,18 +1,13 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { DeviceType, DiagnosisResponse } from "../types";
 
-const apiKey = process.env.API_KEY || '';
-const ai = new GoogleGenAI({ apiKey });
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export const diagnoseDeviceProblem = async (
   deviceType: DeviceType,
   problemDescription: string
 ): Promise<DiagnosisResponse> => {
   
-  if (!apiKey) {
-    throw new Error("API Key is missing");
-  }
-
   const model = "gemini-2.5-flash";
   
   const prompt = `
