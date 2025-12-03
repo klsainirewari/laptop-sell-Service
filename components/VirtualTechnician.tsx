@@ -23,7 +23,7 @@ export const VirtualTechnician: React.FC = () => {
       setResult(data);
     } catch (err) {
       // Show the actual error message to help with debugging
-      const errorMessage = err instanceof Error ? err.message : "Unable to connect. Please check internet.";
+      const errorMessage = err instanceof Error ? err.message : "Connection failed. Please check your internet.";
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -118,10 +118,10 @@ export const VirtualTechnician: React.FC = () => {
               )}
 
               {error && (
-                <div className="text-center text-red-400">
-                  <AlertTriangle className="w-12 h-12 mx-auto mb-3" />
-                  <p className="text-lg font-semibold mb-1">Connection Error</p>
-                  <p className="text-sm opacity-90">{error}</p>
+                <div className="text-center text-red-400 animate-fade-in p-4 bg-red-900/20 rounded-xl border border-red-900/50">
+                  <AlertTriangle className="w-10 h-10 mx-auto mb-3 text-red-500" />
+                  <p className="text-lg font-bold mb-1 text-red-200">Diagnosis Failed</p>
+                  <p className="text-sm text-red-300">{error}</p>
                 </div>
               )}
 
