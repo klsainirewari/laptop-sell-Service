@@ -1,3 +1,4 @@
+
 import { Monitor, Smartphone, Wrench, ShieldCheck, HardDrive } from "lucide-react";
 
 export const BUSINESS_INFO = {
@@ -94,4 +95,23 @@ export const CATALOG_PRODUCTS = [
     img: "https://i.ibb.co/vx864wwt/thinkpad-jpg.jpg", 
     link: "https://wa.me/p/8294710417324994/917206770673"
   },
+];
+
+export const FAQS = [
+  {
+    question: "Do you offer warranty on refurbished laptops?",
+    answer: "Yes, we provide a 1-month testing warranty on all refurbished laptops. This covers hardware issues. Physical damage or liquid damage is not covered."
+  },
+  {
+    question: "How much time does a motherboard repair take?",
+    answer: "Basic repairs (screen/keyboard) are done within 2-4 hours. Chip-level motherboard repairs usually take 1-3 days depending on the complexity."
+  },
+  {
+    question: "Is my data safe during repair?",
+    answer: "Yes, your data remains 100% private and safe. However, for OS installation or hard drive issues, we always recommend backing up important data first."
+  },
+  {
+    question: "Do you buy old laptops?",
+    answer: "Yes, we offer exchange/buyback for old laptops. The price depends on the condition, battery health, and specifications of your device."
+  }
 ];
