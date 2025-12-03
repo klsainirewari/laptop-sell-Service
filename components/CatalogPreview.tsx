@@ -13,7 +13,7 @@ export const CatalogPreview: React.FC = () => {
       price: "₹14,990", 
       tag: "Best Value", 
       // Image: Clear shot of a black business laptop (Latitude style)
-      img: "/Dell.jpg", 
+      img: "/public/Dell.jpg.jpeg", 
       link: "https://wa.me/p/25836281255958120/917206770673"
     },
     { 
@@ -22,7 +22,7 @@ export const CatalogPreview: React.FC = () => {
       price: "₹16,990", 
       tag: "Premium Design", 
       // Image: Clear shot of a silver ultrabook (EliteBook style)
-      img: "/hp.jpg", 
+      img: "/public/hp.jpg.jpeg", 
       link: "https://wa.me/p/8783197445040361/917206770673"
     },
     { 
@@ -31,7 +31,7 @@ export const CatalogPreview: React.FC = () => {
       price: "₹18,990", 
       tag: "Apple Deal", 
       // Image: Specific MacBook Air design
-      img: "/mac.jpg", 
+      img: "/public/mac.jpg.jpeg", 
       link: BUSINESS_INFO.catalogLink
     },
     { 
@@ -40,7 +40,7 @@ export const CatalogPreview: React.FC = () => {
       price: "₹14,990", 
       tag: "Business Rugged", 
       // Image: Classic ThinkPad black design
-      img: "/thinkpad.jpg", 
+      img: "/public/thinkpad.jpg.jpeg", 
       link: "https://wa.me/p/8294710417324994/917206770673"
     },
   ];
