@@ -8,6 +8,8 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, (process as any).cwd(), '');
 
   return {
+    // Set base to './' so assets load correctly on both Vercel (root) and GitHub Pages (subdirectory)
+    base: './',
     plugins: [react()],
     // Define global constants to replace variables like process.env.API_KEY with actual values during build
     define: {
