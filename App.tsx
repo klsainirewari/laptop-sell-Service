@@ -6,6 +6,7 @@ import { CatalogPreview } from './components/CatalogPreview';
 import { VirtualTechnician } from './components/VirtualTechnician';
 import { SocialFeed } from './components/SocialFeed';
 import { Footer } from './components/Footer';
+import { FloatingWhatsApp } from './components/FloatingWhatsApp';
 
 const App: React.FC = () => {
   return (
@@ -19,6 +20,7 @@ const App: React.FC = () => {
         <VirtualTechnician />
       </main>
       <Footer />
+      <FloatingWhatsApp />
     </div>
   );
 };
