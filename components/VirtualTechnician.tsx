@@ -1,8 +1,8 @@
 import React, { useState, useRef } from 'react';
-import { diagnoseDeviceProblem, recommendLaptop } from '../services/geminiService';
-import { DeviceType, DiagnosisResponse, ShoppingResponse, AIMode } from '../types';
+import { diagnoseDeviceProblem, recommendLaptop, estimateExchangeValue } from '../services/geminiService';
+import { DeviceType, DiagnosisResponse, ShoppingResponse, ExchangeResponse, AIMode } from '../types';
 import { BUSINESS_INFO } from '../constants';
-import { Bot, AlertTriangle, CheckCircle, Wrench, Loader2, Camera, Mic, X, Image as ImageIcon, ShoppingBag, Send, RefreshCcw } from 'lucide-react';
+import { Bot, AlertTriangle, CheckCircle, Wrench, Loader2, Camera, Mic, X, Image as ImageIcon, ShoppingBag, Send, RefreshCcw, Banknote } from 'lucide-react';
 
 export const VirtualTechnician: React.FC = () => {
   const [mode, setMode] = useState<AIMode>(AIMode.DIAGNOSIS);
@@ -14,6 +14,7 @@ export const VirtualTechnician: React.FC = () => {
   // Results
   const [diagResult, setDiagResult] = useState<DiagnosisResponse | null>(null);
   const [shopResult, setShopResult] = useState<ShoppingResponse | null>(null);
+  const [exchangeResult, setExchangeResult] = useState<ExchangeResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   
   const [isListening, setIsListening] = useState(false);
@@ -24,6 +25,7 @@ export const VirtualTechnician: React.FC = () => {
     setImage(null);
     setDiagResult(null);
     setShopResult(null);
+    setExchangeResult(null);
     setError(null);
   };
 
@@ -74,14 +76,18 @@ export const VirtualTechnician: React.FC = () => {
     setError(null);
     setDiagResult(null);
     setShopResult(null);
+    setExchangeResult(null);
 
     try {
       if (mode === AIMode.DIAGNOSIS) {
         const data = await diagnoseDeviceProblem(device, description, image || undefined);
         setDiagResult(data);
-      } else {
+      } else if (mode === AIMode.SHOPPING) {
         const data = await recommendLaptop(description);
         setShopResult(data);
+      } else if (mode === AIMode.EXCHANGE) {
+        const data = await estimateExchangeValue(description);
+        setExchangeResult(data);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Connection failed.");
@@ -96,6 +102,8 @@ export const VirtualTechnician: React.FC = () => {
       message = `*Hi Khusboo Electric, Need Repair Help*%0A%0A*Problem:* ${description}%0A*AI Analysis:* ${diagResult.analysis}%0A*Likely Cause:* ${diagResult.potentialCauses.join(', ')}%0A*Severity:* ${diagResult.estimatedSeverity}`;
     } else if (mode === AIMode.SHOPPING && shopResult) {
       message = `*Hi Khusboo Electric, I want to buy a Laptop*%0A%0A*My Usage:* ${description}%0A*AI Recommended:* ${shopResult.recommendedModel}%0A*Budget:* ${shopResult.estimatedBudget}%0A*Please share photos/details.*`;
+    } else if (mode === AIMode.EXCHANGE && exchangeResult) {
+      message = `*Hi Khusboo Electric, I want to Sell my Old Laptop*%0A%0A*My Laptop:* ${description}%0A*AI Valuation:* ${exchangeResult.estimatedValueRange}%0A*I want to schedule a physical check.*`;
     }
     window.open(`https://wa.me/${BUSINESS_INFO.whatsapp}?text=${message}`, '_blank');
   };
@@ -116,34 +124,44 @@ export const VirtualTechnician: React.FC = () => {
             </div>
             <h2 className="text-3xl md:text-4xl font-bold mb-2">AI Smart Assistant</h2>
             <p className="text-slate-300">
-              {mode === AIMode.DIAGNOSIS 
-                ? "Describe your fault or upload a photo for instant analysis." 
-                : "Tell us your needs (e.g., student, coding), and we'll suggest the best laptop."}
+              {mode === AIMode.DIAGNOSIS && "Describe your fault or upload a photo for instant analysis."}
+              {mode === AIMode.SHOPPING && "Tell us your needs, and we'll suggest the best laptop."}
+              {mode === AIMode.EXCHANGE && "Get an instant price estimate for your old laptop."}
             </p>
           </div>
 
           {/* Mode Tabs */}
-          <div className="flex justify-center mb-8">
-            <div className="bg-slate-800 p-1 rounded-xl border border-slate-700 flex">
+          <div className="flex justify-center mb-8 overflow-x-auto">
+            <div className="bg-slate-800 p-1 rounded-xl border border-slate-700 flex whitespace-nowrap">
               <button
                 onClick={() => handleModeSwitch(AIMode.DIAGNOSIS)}
-                className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${
+                className={`flex items-center gap-2 px-4 md:px-6 py-3 rounded-lg font-medium transition-all ${
                   mode === AIMode.DIAGNOSIS 
                   ? 'bg-brand-600 text-white shadow-lg' 
                   : 'text-slate-400 hover:text-white'
                 }`}
               >
-                <Wrench className="w-4 h-4" /> Repair Help
+                <Wrench className="w-4 h-4" /> Repair
               </button>
               <button
                 onClick={() => handleModeSwitch(AIMode.SHOPPING)}
-                className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${
+                className={`flex items-center gap-2 px-4 md:px-6 py-3 rounded-lg font-medium transition-all ${
                   mode === AIMode.SHOPPING 
                   ? 'bg-green-600 text-white shadow-lg' 
                   : 'text-slate-400 hover:text-white'
                 }`}
               >
-                <ShoppingBag className="w-4 h-4" /> Buy Laptop
+                <ShoppingBag className="w-4 h-4" /> Buy
+              </button>
+              <button
+                onClick={() => handleModeSwitch(AIMode.EXCHANGE)}
+                className={`flex items-center gap-2 px-4 md:px-6 py-3 rounded-lg font-medium transition-all ${
+                  mode === AIMode.EXCHANGE 
+                  ? 'bg-purple-600 text-white shadow-lg' 
+                  : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <Banknote className="w-4 h-4" /> Sell Old
               </button>
             </div>
           </div>
@@ -167,15 +185,19 @@ export const VirtualTechnician: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-2">
-                    {mode === AIMode.DIAGNOSIS ? "Describe Problem" : "Describe Your Needs"}
+                    {mode === AIMode.DIAGNOSIS && "Describe Problem"}
+                    {mode === AIMode.SHOPPING && "Describe Your Needs"}
+                    {mode === AIMode.EXCHANGE && "Laptop Details (Model, Specs, Condition)"}
                   </label>
                   <div className="relative">
                     <textarea 
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
-                      placeholder={mode === AIMode.DIAGNOSIS 
-                        ? "e.g., Screen flickering, battery not charging..." 
-                        : "e.g., I am a CS student, need i5 laptop under 20k for coding..."}
+                      placeholder={
+                        mode === AIMode.DIAGNOSIS ? "e.g., Screen flickering, battery not charging..." :
+                        mode === AIMode.SHOPPING ? "e.g., Student needs laptop under 20k for coding..." :
+                        "e.g., Dell Latitude i5 6th gen, 8GB RAM, Battery gives 1hr backup, slight scratch on lid..."
+                      }
                       className="w-full h-32 bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 pr-12 text-white focus:outline-none focus:border-brand-500 resize-none"
                       required
                     />
@@ -230,17 +252,17 @@ export const VirtualTechnician: React.FC = () => {
                   type="submit" 
                   disabled={loading || !description}
                   className={`w-full text-white font-semibold py-3 rounded-lg transition-all flex items-center justify-center gap-2 mt-4 ${
-                    mode === AIMode.DIAGNOSIS 
-                    ? 'bg-brand-600 hover:bg-brand-700' 
-                    : 'bg-green-600 hover:bg-green-700'
+                    mode === AIMode.DIAGNOSIS ? 'bg-brand-600 hover:bg-brand-700' : 
+                    mode === AIMode.SHOPPING ? 'bg-green-600 hover:bg-green-700' :
+                    'bg-purple-600 hover:bg-purple-700'
                   } disabled:opacity-50 disabled:cursor-not-allowed`}
                 >
                   {loading ? (
                     <><Loader2 className="w-5 h-5 animate-spin" /> AI Thinking...</>
                   ) : (
-                    mode === AIMode.DIAGNOSIS 
-                      ? <><Wrench className="w-5 h-5" /> Diagnose Issue</> 
-                      : <><ShoppingBag className="w-5 h-5" /> Find Best Laptop</>
+                    mode === AIMode.DIAGNOSIS ? <><Wrench className="w-5 h-5" /> Diagnose Issue</> : 
+                    mode === AIMode.SHOPPING ? <><ShoppingBag className="w-5 h-5" /> Find Best Laptop</> :
+                    <><Banknote className="w-5 h-5" /> Get Price Estimate</>
                   )}
                 </button>
               </form>
@@ -248,11 +270,11 @@ export const VirtualTechnician: React.FC = () => {
 
             {/* Output Display */}
             <div className="bg-slate-800 p-6 rounded-2xl shadow-xl border border-slate-700 min-h-[300px] flex flex-col">
-              {!diagResult && !shopResult && !loading && !error && (
+              {!diagResult && !shopResult && !exchangeResult && !loading && !error && (
                 <div className="flex-grow flex flex-col items-center justify-center text-slate-500 text-center">
-                  {mode === AIMode.DIAGNOSIS 
-                    ? <Wrench className="w-16 h-16 mb-4 opacity-20" /> 
-                    : <ShoppingBag className="w-16 h-16 mb-4 opacity-20" />}
+                  {mode === AIMode.DIAGNOSIS && <Wrench className="w-16 h-16 mb-4 opacity-20" />}
+                  {mode === AIMode.SHOPPING && <ShoppingBag className="w-16 h-16 mb-4 opacity-20" />}
+                  {mode === AIMode.EXCHANGE && <Banknote className="w-16 h-16 mb-4 opacity-20" />}
                   <p>Results will appear here...</p>
                 </div>
               )}
@@ -302,7 +324,6 @@ export const VirtualTechnician: React.FC = () => {
                     >
                       <Send className="w-5 h-5" /> Send to Technician on WhatsApp
                     </button>
-                    <p className="text-center text-xs text-slate-500 mt-2">Get instant repair quote via chat</p>
                   </div>
                 </div>
               )}
@@ -341,7 +362,42 @@ export const VirtualTechnician: React.FC = () => {
                     >
                       <Send className="w-5 h-5" /> Buy / Inquiry on WhatsApp
                     </button>
-                    <p className="text-center text-xs text-slate-500 mt-2">Check availability directly</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Exchange Result (NEW) */}
+              {exchangeResult && mode === AIMode.EXCHANGE && (
+                <div className="animate-fade-in space-y-4 h-full flex flex-col">
+                  <div className="flex items-center justify-between border-b border-slate-700 pb-3">
+                    <h3 className="font-bold text-xl text-white">Valuation Estimate</h3>
+                    <Banknote className="w-5 h-5 text-purple-400" />
+                  </div>
+                  
+                  <div className="text-center py-4 bg-slate-900 rounded-lg border border-purple-500/30">
+                    <p className="text-xs text-purple-300 uppercase mb-1">Estimated Value</p>
+                    <h2 className="text-3xl font-bold text-white">{exchangeResult.estimatedValueRange}</h2>
+                  </div>
+
+                  <p className="text-slate-300 text-sm">{exchangeResult.marketAnalysis}</p>
+
+                  <div className="bg-slate-900/50 p-3 rounded-lg border border-slate-700">
+                    <h4 className="text-red-400 text-xs font-bold uppercase mb-2">Potential Deductions</h4>
+                    <ul className="list-disc list-inside text-sm text-slate-300">
+                      {exchangeResult.deductionFactors.map((factor, i) => (
+                        <li key={i}>{factor}</li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="mt-auto pt-4">
+                    <button 
+                      onClick={sendToWhatsApp}
+                      className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-lg shadow-purple-900/20"
+                    >
+                      <Send className="w-5 h-5" /> Sell Now via WhatsApp
+                    </button>
+                    <p className="text-center text-xs text-slate-500 mt-2">Subject to physical verification</p>
                   </div>
                 </div>
               )}
