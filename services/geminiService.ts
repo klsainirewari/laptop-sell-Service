@@ -11,8 +11,8 @@ export const diagnoseDeviceProblem = async (
   
   // 1. Check if API Key is present
   if (!apiKey || apiKey.length === 0 || apiKey.includes("API_KEY")) {
-    console.error("CRITICAL ERROR: API Key is missing or invalid. Please check GitHub Secrets/Vercel Env Vars.");
-    throw new Error("System Configuration Error: API Key missing. Please call the shop directly.");
+    console.error("CRITICAL ERROR: API Key is missing or invalid.");
+    throw new Error("System Configuration Error: API Key missing. Please check Vercel/GitHub Settings.");
   }
 
   // 2. Initialize Client
@@ -64,9 +64,15 @@ export const diagnoseDeviceProblem = async (
     
     return JSON.parse(cleanText) as DiagnosisResponse;
 
-  } catch (error) {
+  } catch (error: any) {
     console.error("Gemini Diagnosis Error:", error);
-    // Return a user-friendly message, but log the real error
-    throw new Error("Our virtual technician is currently offline (Connection Error). Please call 7206770673 for help.");
+    
+    // Pass the actual error message if it's about the key or network
+    if (error.message && (error.message.includes("API Key") || error.message.includes("fetch"))) {
+        throw error;
+    }
+    
+    // Fallback for generic AI errors
+    throw new Error("AI Service Unavailable. Please verify internet connection or API Quota.");
   }
 };
