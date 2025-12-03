@@ -12,6 +12,13 @@ export interface ShoppingResponse {
   estimatedBudget: string;
 }
 
+export interface ExchangeResponse {
+  estimatedValueRange: string;
+  marketAnalysis: string;
+  deductionFactors: string[];
+  nextSteps: string;
+}
+
 export enum DeviceType {
   LAPTOP = 'Laptop',
   OTHER = 'Other Electronics'
@@ -19,5 +26,6 @@ export enum DeviceType {
 
 export enum AIMode {
   DIAGNOSIS = 'diagnosis',
-  SHOPPING = 'shopping'
+  SHOPPING = 'shopping',
+  EXCHANGE = 'exchange'
 }
