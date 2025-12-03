@@ -1,49 +1,8 @@
 import React from 'react';
-import { BUSINESS_INFO } from '../constants';
+import { BUSINESS_INFO, CATALOG_PRODUCTS } from '../constants';
 import { ShoppingBag, ArrowRight, ExternalLink, Cpu } from 'lucide-react';
 
 export const CatalogPreview: React.FC = () => {
-  // Specific products with updated details and prices
-  // Using specific image links provided by the user
-  const products = [
-    { 
-      name: "Dell Latitude 7480", 
-      specs: "Core i5 6th Gen, 8GB RAM, 256GB SSD, Win 11",
-      price: "₹14,990", 
-      tag: "Best Value", 
-      // User provided image
-      img: "https://i.ibb.co/sdm2Whxh/Dell-jpg.jpg", 
-      link: "https://wa.me/p/25836281255958120/917206770673"
-    },
-    { 
-      name: "HP EliteBook 840 G5", 
-      specs: "Core i5 7th Gen, 8GB RAM, 256GB SSD, Win 11",
-      price: "₹16,990", 
-      tag: "Premium Design", 
-      // User provided image
-      img: "https://i.ibb.co/5X1DBX0V/hp-jpg.jpg", 
-      link: "https://wa.me/p/8783197445040361/917206770673"
-    },
-    { 
-      name: "MacBook Air A1466 (2017)", 
-      specs: "Core i5, 8GB RAM, 256GB SSD, macOS Monterey",
-      price: "₹18,990", 
-      tag: "Apple Deal", 
-      // User provided image
-      img: "https://i.ibb.co/gbvK5b66/mac-jpg.jpg", 
-      link: BUSINESS_INFO.catalogLink
-    },
-    { 
-      name: "Lenovo ThinkPad T470s", 
-      specs: "Core i5 7th Gen, 8GB RAM, 256GB SSD, Win 11",
-      price: "₹14,990", 
-      tag: "Business Rugged", 
-      // User provided image
-      img: "https://i.ibb.co/vx864wwt/thinkpad-jpg.jpg", 
-      link: "https://wa.me/p/8294710417324994/917206770673"
-    },
-  ];
-
   return (
     <section className="py-20 bg-white">
       <div className="container mx-auto px-4">
@@ -63,7 +22,7 @@ export const CatalogPreview: React.FC = () => {
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {products.map((product, idx) => (
+          {CATALOG_PRODUCTS.map((product, idx) => (
             <div 
               key={idx} 
               className="group relative bg-white border border-slate-200 rounded-2xl overflow-hidden hover:shadow-xl transition-all flex flex-col h-full"

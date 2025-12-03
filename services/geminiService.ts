@@ -1,5 +1,6 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import { DeviceType, DiagnosisResponse } from "../types";
+import { DeviceType, DiagnosisResponse, ShoppingResponse, AIMode } from "../types";
+import { CATALOG_PRODUCTS } from "../constants";
 
 // Access API Key securely
 let rawApiKey = process.env.API_KEY || "";
@@ -15,72 +16,51 @@ if (apiKey.includes('=')) {
 
 apiKey = apiKey.trim();
 
-export const diagnoseDeviceProblem = async (
-  deviceType: DeviceType,
-  problemDescription: string,
-  imageBase64?: string // New optional parameter for image
-): Promise<DiagnosisResponse> => {
-  
-  const maskedKey = apiKey.length > 5 
-    ? `${apiKey.substring(0, 4)}...`
-    : "Key-Too-Short";
-
-  console.log(`AI Service: Initializing. Image provided: ${!!imageBase64}`);
-
+const getAIClient = () => {
   if (!apiKey || apiKey.length < 20 || apiKey.includes("API_KEY")) {
     console.error("CRITICAL ERROR: API Key is missing or invalid.");
     throw new Error("System Configuration Error: API Key missing. Please check Vercel/GitHub Settings.");
   }
-
   if (!apiKey.startsWith("AIza")) {
+      const maskedKey = apiKey.length > 5 ? `${apiKey.substring(0, 4)}...` : "Key-Too-Short";
       throw new Error(`Invalid Key Format. Your key starts with '${maskedKey}', but a valid Google API Key must start with 'AIza'.`);
   }
+  return new GoogleGenAI({ apiKey: apiKey });
+}
 
-  const ai = new GoogleGenAI({ apiKey: apiKey });
-  const model = "gemini-2.5-flash"; // Flash supports images well
-  
-  // Construct the prompt
+export const diagnoseDeviceProblem = async (
+  deviceType: DeviceType,
+  problemDescription: string,
+  imageBase64?: string
+): Promise<DiagnosisResponse> => {
+  const ai = getAIClient();
+  const model = "gemini-2.5-flash";
+
   let systemPrompt = `
     You are an expert senior hardware engineer at "Khusboo Electric" with 15 years of experience.
     A customer has a problem with their ${deviceType}.
-    
     Description: "${problemDescription}"
   `;
 
   if (imageBase64) {
-    systemPrompt += `\n\nNOTE: The user has also provided an image of the device/error. Analyze the visual symptoms in the image (like cracked screen lines, blue screen error codes, physical damage, burnt components) combined with their description.`;
+    systemPrompt += `\n\nNOTE: The user has also provided an image. Analyze visual symptoms (cracks, error codes, damage).`;
   }
 
   systemPrompt += `
-    Analyze this issue professionally.
-    Provide output in valid JSON:
-    - analysis: Technical explanation (2-3 sentences).
-    - potentialCauses: List of 2-3 likely culprits.
-    - recommendation: Specific steps to try, concluding with advising them to visit Khusboo Electric.
+    Analyze professionally. Return JSON:
+    - analysis: Technical explanation (2 sentences).
+    - potentialCauses: 2-3 likely culprits.
+    - recommendation: Specific steps, concluding with "Visit Khusboo Electric for chip-level repair".
     - estimatedSeverity: 'Low', 'Medium', or 'High'.
   `;
 
-  // Prepare contents (Multimodal if image exists)
-  let contentsPayload: any = {
-    parts: []
-  };
-
-  // Add Image Part if available
+  const contentsPayload: any = { parts: [] };
+  
   if (imageBase64) {
-    // Remove header if present (e.g., "data:image/jpeg;base64,")
     const cleanBase64 = imageBase64.split(',').pop() || "";
-    contentsPayload.parts.push({
-      inlineData: {
-        mimeType: "image/jpeg",
-        data: cleanBase64
-      }
-    });
+    contentsPayload.parts.push({ inlineData: { mimeType: "image/jpeg", data: cleanBase64 } });
   }
-
-  // Add Text Part
-  contentsPayload.parts.push({
-    text: systemPrompt
-  });
+  contentsPayload.parts.push({ text: systemPrompt });
 
   try {
     const response = await ai.models.generateContent({
@@ -92,10 +72,7 @@ export const diagnoseDeviceProblem = async (
           type: Type.OBJECT,
           properties: {
             analysis: { type: Type.STRING },
-            potentialCauses: {
-              type: Type.ARRAY,
-              items: { type: Type.STRING }
-            },
+            potentialCauses: { type: Type.ARRAY, items: { type: Type.STRING } },
             recommendation: { type: Type.STRING },
             estimatedSeverity: { type: Type.STRING, enum: ['Low', 'Medium', 'High'] }
           },
@@ -104,25 +81,70 @@ export const diagnoseDeviceProblem = async (
       }
     });
 
-    const text = response.text;
-    if (!text) throw new Error("No response from AI");
-    
-    const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
+    const cleanText = response.text?.replace(/```json/g, '').replace(/```/g, '').trim() || "{}";
     return JSON.parse(cleanText) as DiagnosisResponse;
-
   } catch (error: any) {
-    console.error("Gemini Diagnosis Error:", error);
-    
-    if (error.message) {
-        if (error.message.includes("Invalid Key Format")) return Promise.reject(error);
-        if (error.message.includes("API key not valid") || error.message.includes("400")) {
-            return Promise.reject(new Error(`Google Rejected Key (Used: ${maskedKey}). Check settings.`));
-        }
-        if (error.message.includes("fetch") || error.message.includes("network")) {
-            return Promise.reject(new Error("Network Error: Unable to connect to Google AI."));
-        }
-        return Promise.reject(error);
-    }
-    throw new Error("AI Service Unavailable.");
+    throw handleGeminiError(error);
   }
 };
+
+export const recommendLaptop = async (userNeeds: string): Promise<ShoppingResponse> => {
+  const ai = getAIClient();
+  const model = "gemini-2.5-flash";
+  
+  // Create a simplified string of inventory
+  const inventoryStr = CATALOG_PRODUCTS.map(p => `${p.name} (${p.specs}, ${p.price})`).join("; ");
+
+  const systemPrompt = `
+    You are a friendly sales expert at "Khusboo Electronics".
+    User Needs: "${userNeeds}"
+    
+    Current Inventory: ${inventoryStr}
+    
+    Task: Recommend the BEST matching laptop from our inventory. If none match perfectly, recommend the closest one.
+    Return JSON:
+    - recommendedModel: Exact name from inventory.
+    - reason: Why this specific laptop is good for their needs (student, coding, accounting, etc).
+    - technicalSpecsNeeded: List 3 specs they should look for (e.g. "SSD is must for speed").
+    - estimatedBudget: Comment on the price value (e.g., "Great deal under 15k").
+  `;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: model,
+      contents: { parts: [{ text: systemPrompt }] },
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            recommendedModel: { type: Type.STRING },
+            reason: { type: Type.STRING },
+            technicalSpecsNeeded: { type: Type.ARRAY, items: { type: Type.STRING } },
+            estimatedBudget: { type: Type.STRING }
+          },
+          required: ["recommendedModel", "reason", "technicalSpecsNeeded", "estimatedBudget"]
+        }
+      }
+    });
+
+    const cleanText = response.text?.replace(/```json/g, '').replace(/```/g, '').trim() || "{}";
+    return JSON.parse(cleanText) as ShoppingResponse;
+  } catch (error: any) {
+    throw handleGeminiError(error);
+  }
+};
+
+function handleGeminiError(error: any): Error {
+  console.error("Gemini Error:", error);
+  if (error.message) {
+      if (error.message.includes("Invalid Key Format")) return error;
+      if (error.message.includes("API key not valid") || error.message.includes("400")) {
+          return new Error(`Google Rejected Key. Check settings.`);
+      }
+      if (error.message.includes("fetch") || error.message.includes("network")) {
+          return new Error("Network Error: Unable to connect to Google AI.");
+      }
+  }
+  return new Error("AI Service Unavailable.");
+}

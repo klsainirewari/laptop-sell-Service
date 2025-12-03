@@ -60,3 +60,38 @@ export const SERVICES = [
     icon: ShieldCheck
   }
 ];
+
+export const CATALOG_PRODUCTS = [
+  { 
+    name: "Dell Latitude 7480", 
+    specs: "Core i5 6th Gen, 8GB RAM, 256GB SSD, Win 11",
+    price: "₹14,990", 
+    tag: "Best Value", 
+    img: "https://i.ibb.co/sdm2Whxh/Dell-jpg.jpg", 
+    link: "https://wa.me/p/25836281255958120/917206770673"
+  },
+  { 
+    name: "HP EliteBook 840 G5", 
+    specs: "Core i5 7th Gen, 8GB RAM, 256GB SSD, Win 11",
+    price: "₹16,990", 
+    tag: "Premium Design", 
+    img: "https://i.ibb.co/5X1DBX0V/hp-jpg.jpg", 
+    link: "https://wa.me/p/8783197445040361/917206770673"
+  },
+  { 
+    name: "MacBook Air A1466 (2017)", 
+    specs: "Core i5, 8GB RAM, 256GB SSD, macOS Monterey",
+    price: "₹18,990", 
+    tag: "Apple Deal", 
+    img: "https://i.ibb.co/gbvK5b66/mac-jpg.jpg", 
+    link: BUSINESS_INFO.catalogLink
+  },
+  { 
+    name: "Lenovo ThinkPad T470s", 
+    specs: "Core i5 7th Gen, 8GB RAM, 256GB SSD, Win 11",
+    price: "₹14,990", 
+    tag: "Business Rugged", 
+    img: "https://i.ibb.co/vx864wwt/thinkpad-jpg.jpg", 
+    link: "https://wa.me/p/8294710417324994/917206770673"
+  },
+];
