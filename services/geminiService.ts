@@ -9,6 +9,9 @@ export const diagnoseDeviceProblem = async (
   problemDescription: string
 ): Promise<DiagnosisResponse> => {
   
+  // Debug log (will show in browser console)
+  console.log("AI Service: Initializing...", apiKey ? "Key Present" : "Key Missing");
+
   // 1. Check if API Key is present
   if (!apiKey || apiKey.length === 0 || apiKey.includes("API_KEY")) {
     console.error("CRITICAL ERROR: API Key is missing or invalid.");
@@ -68,11 +71,14 @@ export const diagnoseDeviceProblem = async (
     console.error("Gemini Diagnosis Error:", error);
     
     // Pass the actual error message if it's about the key or network
-    if (error.message && (error.message.includes("API Key") || error.message.includes("fetch"))) {
-        throw error;
+    if (error.message) {
+        if (error.message.includes("API Key")) return Promise.reject(new Error("Invalid API Key configured."));
+        if (error.message.includes("fetch") || error.message.includes("network")) return Promise.reject(new Error("Network Error: Please check internet connection."));
+        // Pass through any other specific messages
+        return Promise.reject(error);
     }
     
     // Fallback for generic AI errors
-    throw new Error("AI Service Unavailable. Please verify internet connection or API Quota.");
+    throw new Error("AI Service Unavailable. Please try again later.");
   }
 };
