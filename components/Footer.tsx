@@ -31,7 +31,14 @@ export const Footer: React.FC = () => {
             <ul className="space-y-4">
               <li className="flex items-start gap-3">
                 <MapPin className="w-5 h-5 text-brand-500 shrink-0 mt-1" />
-                <span>{BUSINESS_INFO.address}</span>
+                <a 
+                  href={BUSINESS_INFO.mapLink} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="hover:text-white transition-colors hover:underline text-left leading-relaxed"
+                >
+                  {BUSINESS_INFO.address}
+                </a>
               </li>
               <li className="flex items-center gap-3">
                 <Phone className="w-5 h-5 text-brand-500 shrink-0" />
