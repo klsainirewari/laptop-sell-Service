@@ -2,30 +2,26 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { DeviceType, DiagnosisResponse, ShoppingResponse, ExchangeResponse, AIMode } from "../types";
 import { CATALOG_PRODUCTS } from "../constants";
 
-// Access API Key securely
-let rawApiKey = process.env.API_KEY || "";
-
-// SMART KEY CLEANING
-let apiKey = rawApiKey.replace(/["'\s\n\r]/g, '');
-
-if (apiKey.includes('=')) {
-  apiKey = apiKey.split('=').pop() || apiKey;
-} else if (apiKey.includes(':')) {
-  apiKey = apiKey.split(':').pop() || apiKey;
-}
-
-apiKey = apiKey.trim();
-
+// Initialize the Gemini client using the API key strictly from process.env.API_KEY
+// as per the @google/genai coding guidelines.
 const getAIClient = () => {
-  if (!apiKey || apiKey.length < 20 || apiKey.includes("API_KEY")) {
-    console.error("CRITICAL ERROR: API Key is missing or invalid.");
-    throw new Error("System Configuration Error: API Key missing. Please check Vercel/GitHub Settings.");
+  // Triple-fallback strategy to ensure Key is found
+  const apiKey = import.meta.env.VITE_API_KEY || process.env.VITE_API_KEY || process.env.API_KEY;
+  
+  if (!apiKey) {
+    throw new Error("API Key Missing. Please check Vercel/GitHub Settings.");
   }
-  if (!apiKey.startsWith("AIza")) {
-      const maskedKey = apiKey.length > 5 ? `${apiKey.substring(0, 4)}...` : "Key-Too-Short";
-      throw new Error(`Invalid Key Format. Your key starts with '${maskedKey}', but a valid Google API Key must start with 'AIza'.`);
+
+  // Clean the key (Remove spaces, quotes, newlines)
+  const cleanKey = apiKey.toString().replace(/["'\s\n\r]/g, '').trim();
+
+  // Prefix Check
+  if (!cleanKey.startsWith("AIza")) {
+     const masked = cleanKey.substring(0, 4) + "..." + cleanKey.substring(cleanKey.length - 4);
+     throw new Error(`Invalid Key Format. Key must start with 'AIza'. Used: ${masked}`);
   }
-  return new GoogleGenAI({ apiKey: apiKey });
+
+  return new GoogleGenAI({ apiKey: cleanKey });
 }
 
 export const diagnoseDeviceProblem = async (
@@ -54,18 +50,18 @@ export const diagnoseDeviceProblem = async (
     - estimatedSeverity: 'Low', 'Medium', or 'High'.
   `;
 
-  const contentsPayload: any = { parts: [] };
+  const parts: any[] = [];
   
   if (imageBase64) {
     const cleanBase64 = imageBase64.split(',').pop() || "";
-    contentsPayload.parts.push({ inlineData: { mimeType: "image/jpeg", data: cleanBase64 } });
+    parts.push({ inlineData: { mimeType: "image/jpeg", data: cleanBase64 } });
   }
-  contentsPayload.parts.push({ text: systemPrompt });
+  parts.push({ text: systemPrompt });
 
   try {
     const response = await ai.models.generateContent({
       model: model,
-      contents: contentsPayload,
+      contents: { parts },
       config: {
         responseMimeType: "application/json",
         responseSchema: {
@@ -191,29 +187,24 @@ export const estimateExchangeValue = async (laptopDetails: string): Promise<Exch
 
 function handleGeminiError(error: any): Error {
   console.error("Gemini Error:", error);
-  const msg = error.message || error.toString();
+  const msg = (error.message || error.toString()).toLowerCase();
 
-  // Handle Specific Error Codes
-  if (msg.includes("403") || msg.includes("PERMISSION_DENIED") || msg.includes("rejected")) {
+  // --- TEMPORARY ERRORS (Rate Limit) ---
+  if (msg.includes("429") || msg.includes("quota") || msg.includes("exhausted")) {
+      return new Error("AI_BUSY"); // Special code for UI to show "Wait 1 min"
+  }
+  if (msg.includes("fetch") || msg.includes("network") || msg.includes("failed to fetch")) {
+      return new Error("Network Error. Please check your internet connection.");
+  }
+
+  // --- PERMANENT ERRORS (Configuration) ---
+  if (msg.includes("403") || msg.includes("permission_denied")) {
       return new Error("Access Denied (403). Ensure 'Generative Language API' is enabled in Google Cloud Console.");
   }
-  if (msg.includes("Invalid Key Format")) return error;
-  if (msg.includes("API key not valid") || msg.includes("400")) {
-      return new Error(`Google Rejected Key. Check GitHub/Vercel settings for spaces/quotes.`);
+  if (msg.includes("400") || msg.includes("invalid_argument") || msg.includes("api key not valid")) {
+      return new Error("Invalid API Key. Please check Vercel/GitHub Settings.");
   }
-  if (msg.includes("fetch") || msg.includes("network") || msg.includes("Failed to fetch")) {
-      return new Error("Network Error: Unable to connect to Google AI.");
-  }
-  if (msg.includes("429") || msg.includes("quota") || msg.includes("Exhausted")) {
-      return new Error("AI Busy/Quota Exceeded. Please try again in a few moments.");
-  }
-  if (msg.includes("503") || msg.includes("overloaded")) {
-      return new Error("AI Service Overloaded. Please try again.");
-  }
-  if (msg.includes("blocked")) {
-      return new Error("AI Request Blocked. Please refine your description.");
-  }
-
-  // Fallback: show the actual error to help debug
+  
+  // Fallback
   return new Error(`AI Service Unavailable: ${msg.substring(0, 100)}`);
 }

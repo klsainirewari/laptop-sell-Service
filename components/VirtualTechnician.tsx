@@ -1,8 +1,8 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { diagnoseDeviceProblem, recommendLaptop, estimateExchangeValue } from '../services/geminiService';
 import { DeviceType, DiagnosisResponse, ShoppingResponse, ExchangeResponse, AIMode } from '../types';
 import { BUSINESS_INFO } from '../constants';
-import { Bot, AlertTriangle, CheckCircle, Wrench, Loader2, Camera, Mic, X, Image as ImageIcon, ShoppingBag, Send, RefreshCcw, Banknote, ExternalLink } from 'lucide-react';
+import { Bot, AlertTriangle, CheckCircle, Wrench, Loader2, Camera, Mic, X, ShoppingBag, Send, RefreshCcw, Banknote, ExternalLink, Clock } from 'lucide-react';
 
 export const VirtualTechnician: React.FC = () => {
   const [mode, setMode] = useState<AIMode>(AIMode.DIAGNOSIS);
@@ -15,10 +15,24 @@ export const VirtualTechnician: React.FC = () => {
   const [diagResult, setDiagResult] = useState<DiagnosisResponse | null>(null);
   const [shopResult, setShopResult] = useState<ShoppingResponse | null>(null);
   const [exchangeResult, setExchangeResult] = useState<ExchangeResponse | null>(null);
+  
+  // Error & Cooldown
   const [error, setError] = useState<string | null>(null);
+  const [cooldown, setCooldown] = useState(0); // Cooldown in seconds
   
   const [isListening, setIsListening] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Timer for cooldown
+  useEffect(() => {
+    let timer: any;
+    if (cooldown > 0) {
+      timer = setInterval(() => {
+        setCooldown((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [cooldown]);
 
   const resetForm = () => {
     setDescription('');
@@ -89,8 +103,15 @@ export const VirtualTechnician: React.FC = () => {
         const data = await estimateExchangeValue(description);
         setExchangeResult(data);
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Connection failed.");
+    } catch (err: any) {
+      const msg = err.message || "Error";
+      
+      if (msg === "AI_BUSY") {
+        setCooldown(45); // Set 45 second cooldown
+        setError("AI_BUSY");
+      } else {
+        setError(msg);
+      }
     } finally {
       setLoading(false);
     }
@@ -250,21 +271,27 @@ export const VirtualTechnician: React.FC = () => {
 
                 <button 
                   type="submit" 
-                  disabled={loading || !description}
+                  disabled={loading || !description || cooldown > 0}
                   className={`w-full text-white font-semibold py-3 rounded-lg transition-all flex items-center justify-center gap-2 mt-4 ${
+                    cooldown > 0 ? 'bg-yellow-600 cursor-wait' :
                     mode === AIMode.DIAGNOSIS ? 'bg-brand-600 hover:bg-brand-700' : 
                     mode === AIMode.SHOPPING ? 'bg-green-600 hover:bg-green-700' :
                     'bg-purple-600 hover:bg-purple-700'
-                  } disabled:opacity-50 disabled:cursor-not-allowed`}
+                  } disabled:opacity-75 disabled:cursor-not-allowed`}
                 >
                   {loading ? (
                     <><Loader2 className="w-5 h-5 animate-spin" /> AI Thinking...</>
+                  ) : cooldown > 0 ? (
+                    <><Clock className="w-5 h-5 animate-pulse" /> System Cooling Down ({cooldown}s)</>
                   ) : (
                     mode === AIMode.DIAGNOSIS ? <><Wrench className="w-5 h-5" /> Diagnose Issue</> : 
                     mode === AIMode.SHOPPING ? <><ShoppingBag className="w-5 h-5" /> Find Best Laptop</> :
                     <><Banknote className="w-5 h-5" /> Get Price Estimate</>
                   )}
                 </button>
+                {cooldown > 0 && (
+                   <p className="text-center text-xs text-yellow-400">High traffic! Please wait {cooldown}s before next request.</p>
+                )}
               </form>
             </div>
 
@@ -291,24 +318,35 @@ export const VirtualTechnician: React.FC = () => {
 
               {error && (
                 <div className="flex-grow flex flex-col items-center justify-center text-center text-red-400 p-4">
-                  <AlertTriangle className="w-10 h-10 mb-3 text-red-500" />
-                  <p className="font-bold">Error</p>
-                  <p className="text-sm mb-4">{error}</p>
-                  
-                  {error.includes("403") && (
-                     <a 
-                       href="https://aistudiocdn.google.com/app/apikey" 
-                       target="_blank" 
-                       rel="noopener noreferrer"
-                       className="flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg text-sm mb-4 transition-colors"
-                     >
-                        <ExternalLink className="w-4 h-4" /> Get New API Key
-                     </a>
+                  {error === "AI_BUSY" ? (
+                    <>
+                       <Clock className="w-12 h-12 mb-3 text-yellow-500" />
+                       <p className="font-bold text-yellow-500">System Busy</p>
+                       <p className="text-sm mb-4 text-slate-300">Daily Free Limit Reached or High Traffic.</p>
+                       <p className="text-xs text-slate-400">Please wait 45 seconds and try again.</p>
+                    </>
+                  ) : (
+                    <>
+                      <AlertTriangle className="w-10 h-10 mb-3 text-red-500" />
+                      <p className="font-bold">Error</p>
+                      <p className="text-sm mb-4">{error}</p>
+                      
+                      {error.includes("403") && (
+                         <a 
+                           href="https://aistudio.google.com/app/apikey" 
+                           target="_blank" 
+                           rel="noopener noreferrer"
+                           className="flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg text-sm mb-4 transition-colors"
+                         >
+                            <ExternalLink className="w-4 h-4" /> Get New API Key
+                         </a>
+                      )}
+    
+                      <button onClick={resetForm} className="flex items-center gap-2 text-sm text-slate-400 hover:text-white">
+                        <RefreshCcw className="w-3 h-3" /> Try Again
+                      </button>
+                    </>
                   )}
-
-                  <button onClick={resetForm} className="flex items-center gap-2 text-sm text-slate-400 hover:text-white">
-                    <RefreshCcw className="w-3 h-3" /> Try Again
-                  </button>
                 </div>
               )}
 
