@@ -7,9 +7,11 @@ import { CATALOG_PRODUCTS } from "../constants";
 // as per the @google/genai coding guidelines.
 const getAIClient = () => {
   // Triple-fallback strategy to ensure Key is found
+  // Vercel uses import.meta.env.VITE_API_KEY natively
   const apiKey = import.meta.env.VITE_API_KEY || process.env.VITE_API_KEY || process.env.API_KEY;
   
   if (!apiKey) {
+    console.error("Gemini Service: API Key is completely missing.");
     throw new Error("API Key Missing. Please check Vercel/GitHub Settings.");
   }
 
@@ -19,6 +21,7 @@ const getAIClient = () => {
   // Prefix Check
   if (!cleanKey.startsWith("AIza")) {
      const masked = cleanKey.substring(0, 4) + "..." + cleanKey.substring(cleanKey.length - 4);
+     console.error("Gemini Service: Invalid Key Format:", masked);
      throw new Error(`Invalid Key Format. Key must start with 'AIza'. Used: ${masked}`);
   }
 
