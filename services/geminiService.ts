@@ -193,9 +193,13 @@ function handleGeminiError(error: any): Error {
   console.error("Gemini Error:", error);
   const msg = error.message || error.toString();
 
+  // Handle Specific Error Codes
+  if (msg.includes("403") || msg.includes("PERMISSION_DENIED") || msg.includes("rejected")) {
+      return new Error("Access Denied (403). Ensure 'Generative Language API' is enabled in Google Cloud Console.");
+  }
   if (msg.includes("Invalid Key Format")) return error;
   if (msg.includes("API key not valid") || msg.includes("400")) {
-      return new Error(`Google Rejected Key. Check settings.`);
+      return new Error(`Google Rejected Key. Check GitHub/Vercel settings for spaces/quotes.`);
   }
   if (msg.includes("fetch") || msg.includes("network") || msg.includes("Failed to fetch")) {
       return new Error("Network Error: Unable to connect to Google AI.");
@@ -211,5 +215,5 @@ function handleGeminiError(error: any): Error {
   }
 
   // Fallback: show the actual error to help debug
-  return new Error(`AI Service Unavailable: ${msg.substring(0, 50)}...`);
+  return new Error(`AI Service Unavailable: ${msg.substring(0, 100)}`);
 }
