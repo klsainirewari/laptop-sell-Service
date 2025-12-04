@@ -330,16 +330,17 @@ export const VirtualTechnician: React.FC = () => {
                     <div className="bg-slate-700/50 p-6 rounded-xl border border-red-500/30 w-full text-left">
                        <div className="flex items-center gap-2 mb-4 text-red-400">
                           <AlertTriangle className="w-6 h-6" />
-                          <h3 className="font-bold">Permanent Fix Required (Error 403)</h3>
+                          <h3 className="font-bold">Permission Denied (403)</h3>
                        </div>
                        <p className="text-slate-300 text-sm mb-4">
-                         <strong>Simplest Solution:</strong> Your current API key is blocked.
+                         <strong>Fix in Google Cloud Console:</strong>
                        </p>
                        <ol className="list-decimal list-inside text-sm text-slate-300 space-y-2 mb-4">
-                          <li>Go to <strong>Google AI Studio</strong> (Link below).</li>
-                          <li>Click <strong>"Create API Key"</strong>.</li>
-                          <li>Update Vercel/GitHub Settings with the new key.</li>
+                          <li>Click on <strong>VITE_API_KEY</strong> (blue text) in the list.</li>
+                          <li>Find <strong>"Application restrictions"</strong>.</li>
+                          <li>Select <strong>"None"</strong> and Click Save.</li>
                        </ol>
+                       <p className="text-xs text-slate-400 mb-4">Alternatively, create a new key from AI Studio.</p>
                        <div className="flex gap-2 mt-4">
                          <a 
                            href="https://aistudio.google.com/app/apikey" 
