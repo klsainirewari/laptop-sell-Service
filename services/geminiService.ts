@@ -81,7 +81,10 @@ export const diagnoseDeviceProblem = async (
       }
     });
 
-    const cleanText = response.text?.replace(/```json/g, '').replace(/```/g, '').trim() || "{}";
+    const cleanText = response.text?.replace(/```json/g, '').replace(/```/g, '').trim();
+    if (!cleanText) {
+       throw new Error("AI returned empty response (possibly blocked).");
+    }
     return JSON.parse(cleanText) as DiagnosisResponse;
   } catch (error: any) {
     throw handleGeminiError(error);
@@ -128,7 +131,10 @@ export const recommendLaptop = async (userNeeds: string): Promise<ShoppingRespon
       }
     });
 
-    const cleanText = response.text?.replace(/```json/g, '').replace(/```/g, '').trim() || "{}";
+    const cleanText = response.text?.replace(/```json/g, '').replace(/```/g, '').trim();
+    if (!cleanText) {
+        throw new Error("AI returned empty response.");
+    }
     return JSON.parse(cleanText) as ShoppingResponse;
   } catch (error: any) {
     throw handleGeminiError(error);
@@ -173,7 +179,10 @@ export const estimateExchangeValue = async (laptopDetails: string): Promise<Exch
       }
     });
 
-    const cleanText = response.text?.replace(/```json/g, '').replace(/```/g, '').trim() || "{}";
+    const cleanText = response.text?.replace(/```json/g, '').replace(/```/g, '').trim();
+    if (!cleanText) {
+        throw new Error("AI returned empty response.");
+    }
     return JSON.parse(cleanText) as ExchangeResponse;
   } catch (error: any) {
     throw handleGeminiError(error);
@@ -182,14 +191,25 @@ export const estimateExchangeValue = async (laptopDetails: string): Promise<Exch
 
 function handleGeminiError(error: any): Error {
   console.error("Gemini Error:", error);
-  if (error.message) {
-      if (error.message.includes("Invalid Key Format")) return error;
-      if (error.message.includes("API key not valid") || error.message.includes("400")) {
-          return new Error(`Google Rejected Key. Check settings.`);
-      }
-      if (error.message.includes("fetch") || error.message.includes("network")) {
-          return new Error("Network Error: Unable to connect to Google AI.");
-      }
+  const msg = error.message || error.toString();
+
+  if (msg.includes("Invalid Key Format")) return error;
+  if (msg.includes("API key not valid") || msg.includes("400")) {
+      return new Error(`Google Rejected Key. Check settings.`);
   }
-  return new Error("AI Service Unavailable.");
+  if (msg.includes("fetch") || msg.includes("network") || msg.includes("Failed to fetch")) {
+      return new Error("Network Error: Unable to connect to Google AI.");
+  }
+  if (msg.includes("429") || msg.includes("quota") || msg.includes("Exhausted")) {
+      return new Error("AI Busy/Quota Exceeded. Please try again in a few moments.");
+  }
+  if (msg.includes("503") || msg.includes("overloaded")) {
+      return new Error("AI Service Overloaded. Please try again.");
+  }
+  if (msg.includes("blocked")) {
+      return new Error("AI Request Blocked. Please refine your description.");
+  }
+
+  // Fallback: show the actual error to help debug
+  return new Error(`AI Service Unavailable: ${msg.substring(0, 50)}...`);
 }
