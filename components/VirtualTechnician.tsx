@@ -1,8 +1,9 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { diagnoseDeviceProblem, recommendLaptop, estimateExchangeValue } from '../services/geminiService';
 import { DeviceType, DiagnosisResponse, ShoppingResponse, ExchangeResponse, AIMode } from '../types';
 import { BUSINESS_INFO } from '../constants';
-import { Bot, AlertTriangle, CheckCircle, Wrench, Loader2, Camera, Mic, X, ShoppingBag, Send, RefreshCcw, Banknote, ExternalLink, Clock } from 'lucide-react';
+import { Bot, AlertTriangle, CheckCircle, Wrench, Loader2, Camera, Mic, X, ShoppingBag, Send, RefreshCcw, Banknote, ExternalLink, Clock, Settings, Key } from 'lucide-react';
 
 export const VirtualTechnician: React.FC = () => {
   const [mode, setMode] = useState<AIMode>(AIMode.DIAGNOSIS);
@@ -317,7 +318,7 @@ export const VirtualTechnician: React.FC = () => {
               )}
 
               {error && (
-                <div className="flex-grow flex flex-col items-center justify-center text-center text-red-400 p-4">
+                <div className="flex-grow flex flex-col items-center justify-center text-center text-red-400 p-4 w-full">
                   {error === "AI_BUSY" ? (
                     <>
                        <Clock className="w-12 h-12 mb-3 text-yellow-500" />
@@ -325,23 +326,39 @@ export const VirtualTechnician: React.FC = () => {
                        <p className="text-sm mb-4 text-slate-300">Daily Free Limit Reached or High Traffic.</p>
                        <p className="text-xs text-slate-400">Please wait 45 seconds and try again.</p>
                     </>
+                  ) : error.includes("403") ? (
+                    <div className="bg-slate-700/50 p-6 rounded-xl border border-red-500/30 w-full text-left">
+                       <div className="flex items-center gap-2 mb-4 text-red-400">
+                          <AlertTriangle className="w-6 h-6" />
+                          <h3 className="font-bold">Permanent Fix Required (Error 403)</h3>
+                       </div>
+                       <p className="text-slate-300 text-sm mb-4">
+                         <strong>Simplest Solution:</strong> Your current API key is blocked.
+                       </p>
+                       <ol className="list-decimal list-inside text-sm text-slate-300 space-y-2 mb-4">
+                          <li>Go to <strong>Google AI Studio</strong> (Link below).</li>
+                          <li>Click <strong>"Create API Key"</strong>.</li>
+                          <li>Update Vercel/GitHub Settings with the new key.</li>
+                       </ol>
+                       <div className="flex gap-2 mt-4">
+                         <a 
+                           href="https://aistudio.google.com/app/apikey" 
+                           target="_blank" 
+                           rel="noopener noreferrer"
+                           className="flex-1 bg-brand-600 hover:bg-brand-500 text-white px-4 py-2 rounded-lg text-sm text-center font-semibold flex items-center justify-center gap-2"
+                         >
+                            <Key className="w-4 h-4" /> Get New Key
+                         </a>
+                         <button onClick={resetForm} className="px-4 py-2 rounded-lg text-sm bg-slate-600 hover:bg-slate-500 text-white">
+                           Retry
+                         </button>
+                       </div>
+                    </div>
                   ) : (
                     <>
                       <AlertTriangle className="w-10 h-10 mb-3 text-red-500" />
                       <p className="font-bold">Error</p>
                       <p className="text-sm mb-4">{error}</p>
-                      
-                      {error.includes("403") && (
-                         <a 
-                           href="https://aistudio.google.com/app/apikey" 
-                           target="_blank" 
-                           rel="noopener noreferrer"
-                           className="flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg text-sm mb-4 transition-colors"
-                         >
-                            <ExternalLink className="w-4 h-4" /> Get New API Key
-                         </a>
-                      )}
-    
                       <button onClick={resetForm} className="flex items-center gap-2 text-sm text-slate-400 hover:text-white">
                         <RefreshCcw className="w-3 h-3" /> Try Again
                       </button>

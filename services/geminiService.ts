@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, Type } from "@google/genai";
 import { DeviceType, DiagnosisResponse, ShoppingResponse, ExchangeResponse, AIMode } from "../types";
 import { CATALOG_PRODUCTS } from "../constants";
@@ -199,7 +200,8 @@ function handleGeminiError(error: any): Error {
 
   // --- PERMANENT ERRORS (Configuration) ---
   if (msg.includes("403") || msg.includes("permission_denied")) {
-      return new Error("Access Denied (403). Ensure 'Generative Language API' is enabled in Google Cloud Console.");
+      // Return specific 403 error for UI handling
+      return new Error("403_FORBIDDEN");
   }
   if (msg.includes("400") || msg.includes("invalid_argument") || msg.includes("api key not valid")) {
       return new Error("Invalid API Key. Please check Vercel/GitHub Settings.");
