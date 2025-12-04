@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { diagnoseDeviceProblem, recommendLaptop, estimateExchangeValue } from '../services/geminiService';
 import { DeviceType, DiagnosisResponse, ShoppingResponse, ExchangeResponse, AIMode } from '../types';
 import { BUSINESS_INFO } from '../constants';
-import { Bot, AlertTriangle, CheckCircle, Wrench, Loader2, Camera, Mic, X, Image as ImageIcon, ShoppingBag, Send, RefreshCcw, Banknote } from 'lucide-react';
+import { Bot, AlertTriangle, CheckCircle, Wrench, Loader2, Camera, Mic, X, Image as ImageIcon, ShoppingBag, Send, RefreshCcw, Banknote, ExternalLink } from 'lucide-react';
 
 export const VirtualTechnician: React.FC = () => {
   const [mode, setMode] = useState<AIMode>(AIMode.DIAGNOSIS);
@@ -293,8 +293,20 @@ export const VirtualTechnician: React.FC = () => {
                 <div className="flex-grow flex flex-col items-center justify-center text-center text-red-400 p-4">
                   <AlertTriangle className="w-10 h-10 mb-3 text-red-500" />
                   <p className="font-bold">Error</p>
-                  <p className="text-sm">{error}</p>
-                  <button onClick={resetForm} className="mt-4 flex items-center gap-2 text-sm text-slate-400 hover:text-white">
+                  <p className="text-sm mb-4">{error}</p>
+                  
+                  {error.includes("403") && (
+                     <a 
+                       href="https://aistudiocdn.google.com/app/apikey" 
+                       target="_blank" 
+                       rel="noopener noreferrer"
+                       className="flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg text-sm mb-4 transition-colors"
+                     >
+                        <ExternalLink className="w-4 h-4" /> Get New API Key
+                     </a>
+                  )}
+
+                  <button onClick={resetForm} className="flex items-center gap-2 text-sm text-slate-400 hover:text-white">
                     <RefreshCcw className="w-3 h-3" /> Try Again
                   </button>
                 </div>
